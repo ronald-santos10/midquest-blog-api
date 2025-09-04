@@ -3,7 +3,7 @@ import SibApiV3Sdk from "sib-api-v3-sdk";
 const client = SibApiV3Sdk.ApiClient.instance;
 const apiKey = client.authentications["api-key"];
 apiKey.apiKey = process.env.BREVO_API_KEY as string;
-const site = process.env.SITE_DOMAIN_BLOG as string;
+const site = process.env.SITE_DOMAIN as string;
 
 const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
@@ -24,7 +24,7 @@ const lifecycles = {
         params: {
           title: result.title,
           description: result.description,
-          link: `${site}/${result.slug}`,
+          link: `${site}/post/${result.slug}`,
         },
       };
 
