@@ -24,9 +24,14 @@ const lifecycles = {
         params: {
           title: result.title,
           description: result.description,
-          link: `${site}/post/${result.slug}`,
+          link: `${site}/blog/${result.slug}`,
         },
       };
+
+      strapi.log.info(
+        "📧 Dados enviados para a Brevo:",
+        JSON.stringify(sendSmtpEmail, null, 2)
+      );
 
       try {
         await tranEmailApi.sendTransacEmail(sendSmtpEmail);
