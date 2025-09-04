@@ -1,59 +1,42 @@
-import axios from "axios";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
-export const lifecycles = {
-  async afterCreate(event) {
-    const post = event.result;
+// Configuração do cliente Brevo
+const client = SibApiV3Sdk.ApiClient.instance;
+const apiKey = client.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY as string;
+const site = process.env.SITE_DOMAIN as string;
+
+const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+
+const lifecycles = {
+  async afterCreate(event: any) {
+    strapi.log.info("🚀 Lifecycle afterCreate disparado");
+    strapi.log.info(event.result);
+    const { result } = event;
+
+    const listId = 3;
+    const templateId = 1;
+
+    const sendSmtpEmail: SibApiV3Sdk.SendSmtpEmail = {
+      sender: { email: process.env.EMAIL_FROM, name: "Midquest" },
+      templateId,
+      listIds: [listId],
+      params: {
+        title: result.title,
+        description: result.description,
+        link: `${site}/blog/${result.slug}`,
+      },
+    };
 
     try {
-      const listId = 3; 
-      const contactsResponse = await axios.get(
-        `https://api.brevo.com/v3/contacts?listIds=${listId}`,
-        {
-          headers: {
-            "api-key": process.env.BREVO_API_KEY,
-          }
-        }
+      await tranEmailApi.sendTransacEmail(sendSmtpEmail);
+      strapi.log.info(
+        `📧 Email via template ${templateId} enviado para lista ${listId}`
       );
-
-      const contacts = contactsResponse.data.contacts.map(contact => contact.email);
-      console.log(`Encontrados ${contacts.length} contatos.`)
-
-      console.log('Iniciando o envio do evento "new_post" para cada contato...');
-      
-      for (const email of contacts) {
-        await axios.post(
-          "https://api.brevo.com/v3/events",
-          {
-            eventName: "new_post",
-            email: email, 
-            properties: {
-              title: post.title,
-              slug: post.slug,
-              url: `${process.env.SITE_DOMAIN}/posts/${post.slug}`
-            }
-          },
-          {
-            headers: {
-              "api-key": process.env.BREVO_API_KEY,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-        console.log(`Evento enviado para: ${email}`);
-      }
-
-      console.log('Envio de eventos concluído.');
-
-    } catch (error) {
-      console.error('Falha ao processar o envio dos eventos.');
-      if (error.response) {
-        console.error('Status do Erro:', error.response.status);
-        console.error('Resposta do Erro:', error.response.data);
-      } else if (error.request) {
-        console.error('Sem resposta do servidor. Requisição:', error.request);
-      } else {
-        console.error('Erro de Configuração:', error.message);
-      }
+    } catch (err) {
+      strapi.log.error("Erro ao enviar email:", err);
     }
   },
 };
+
+export default lifecycles;
