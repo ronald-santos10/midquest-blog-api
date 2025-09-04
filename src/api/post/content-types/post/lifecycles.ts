@@ -28,10 +28,7 @@ const lifecycles = {
         },
       };
 
-      strapi.log.info(
-        "📧 Dados enviados para a Brevo:",
-        JSON.stringify(sendSmtpEmail, null, 2)
-      );
+      strapi.log.info("📧 Dados enviados para a Brevo:", JSON.stringify(sendSmtpEmail, null, 2));
 
       try {
         await tranEmailApi.sendTransacEmail(sendSmtpEmail);
